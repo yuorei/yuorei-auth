@@ -1,0 +1,17 @@
+type CreateUserPayload {
+		firstName: String
+		lastName:  String
+		email:     String
+		username:  String!
+}
+
+input CreateUserInput {
+		firstName: String
+		lastName:  String
+		email:     String
+		username:  String!
+}
+
+type Mutation {
+  createUser(input: CreateUserInput!): CreateUserPayload!
+}
