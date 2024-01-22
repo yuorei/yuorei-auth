@@ -1,0 +1,20 @@
+input LoginInput {
+    username: String!
+    password: String!
+}
+
+type LoginPayload {
+    accessToken:      String!
+    idToken:          String!
+    expiresIn:        Int!
+    refreshExpiresIn: Int!
+    refreshToken:     String!
+    tokenType:        String!
+    notBeforePolicy:  Int!
+    sessionState:     String!
+    scope:            String!
+}
+
+extend type Mutation {
+    Login(input: LoginInput!): LoginPayload!
+}
