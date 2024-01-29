@@ -13,6 +13,7 @@ input CreateUserInput {
 		lastName:  String
 		email:     String
 		username:  String!
+		password:  String!
 		profileImage: Upload
 }
 

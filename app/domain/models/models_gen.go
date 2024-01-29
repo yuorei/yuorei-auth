@@ -11,6 +11,7 @@ type CreateUserInput struct {
 	LastName     *string         `json:"lastName,omitempty"`
 	Email        *string         `json:"email,omitempty"`
 	Username     string          `json:"username"`
+	Password     string          `json:"password"`
 	ProfileImage *graphql.Upload `json:"profileImage,omitempty"`
 }
 

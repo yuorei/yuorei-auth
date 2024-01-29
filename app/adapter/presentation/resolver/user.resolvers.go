@@ -18,7 +18,7 @@ import (
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUserInput) (*model.CreateUserPayload, error) {
 	client := gocloak.NewClient(os.Getenv("KEYCLOAK_URL"))
 
-	token, err := client.LoginAdmin(ctx, os.Getenv("KEYCLOAK_ADMIN_USERNAME"), os.Getenv("KEYCLOAK_ADMIN_PASSWORD"), "master")
+	masterToken, err := client.LoginAdmin(ctx, os.Getenv("KEYCLOAK_ADMIN_USERNAME"), os.Getenv("KEYCLOAK_ADMIN_PASSWORD"), "master")
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,12 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUse
 		},
 	}
 
-	_, err = client.CreateUser(ctx, token.AccessToken, os.Getenv("KEYCLOAK_REALM"), user)
+	userID, err := client.CreateUser(ctx, masterToken.AccessToken, os.Getenv("KEYCLOAK_REALM"), user)
+	if err != nil {
+		return nil, err
+	}
+
+	err = client.SetPassword(ctx, masterToken.AccessToken, userID, os.Getenv("KEYCLOAK_REALM"), input.Password, false)
 	if err != nil {
 		return nil, err
 	}
