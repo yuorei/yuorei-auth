@@ -46,10 +46,11 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	CreateUserPayload struct {
-		Email     func(childComplexity int) int
-		FirstName func(childComplexity int) int
-		LastName  func(childComplexity int) int
-		Username  func(childComplexity int) int
+		Email           func(childComplexity int) int
+		FirstName       func(childComplexity int) int
+		LastName        func(childComplexity int) int
+		ProfileImageURL func(childComplexity int) int
+		Username        func(childComplexity int) int
 	}
 
 	LoginPayload struct {
@@ -117,6 +118,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CreateUserPayload.LastName(childComplexity), true
+
+	case "CreateUserPayload.profileImageURL":
+		if e.complexity.CreateUserPayload.ProfileImageURL == nil {
+			break
+		}
+
+		return e.complexity.CreateUserPayload.ProfileImageURL(childComplexity), true
 
 	case "CreateUserPayload.username":
 		if e.complexity.CreateUserPayload.Username == nil {
@@ -340,11 +348,14 @@ extend type Mutation {
     Login(input: LoginInput!): LoginPayload!
 }
 `, BuiltIn: false},
-	{Name: "../schema/user.graphqls", Input: `type CreateUserPayload {
+	{Name: "../schema/user.graphqls", Input: `scalar Upload
+
+type CreateUserPayload {
 		firstName: String
 		lastName:  String
 		email:     String
 		username:  String!
+		profileImageURL: String
 }
 
 input CreateUserInput {
@@ -352,6 +363,7 @@ input CreateUserInput {
 		lastName:  String
 		email:     String
 		username:  String!
+		profileImage: Upload
 }
 
 type Mutation {
@@ -603,6 +615,47 @@ func (ec *executionContext) _CreateUserPayload_username(ctx context.Context, fie
 }
 
 func (ec *executionContext) fieldContext_CreateUserPayload_username(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CreateUserPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CreateUserPayload_profileImageURL(ctx context.Context, field graphql.CollectedField, obj *model.CreateUserPayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CreateUserPayload_profileImageURL(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProfileImageURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CreateUserPayload_profileImageURL(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "CreateUserPayload",
 		Field:      field,
@@ -1058,6 +1111,8 @@ func (ec *executionContext) fieldContext_Mutation_createUser(ctx context.Context
 				return ec.fieldContext_CreateUserPayload_email(ctx, field)
 			case "username":
 				return ec.fieldContext_CreateUserPayload_username(ctx, field)
+			case "profileImageURL":
+				return ec.fieldContext_CreateUserPayload_profileImageURL(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CreateUserPayload", field.Name)
 		},
@@ -3060,7 +3115,7 @@ func (ec *executionContext) unmarshalInputCreateUserInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"firstName", "lastName", "email", "username"}
+	fieldsInOrder := [...]string{"firstName", "lastName", "email", "username", "profileImage"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -3095,6 +3150,13 @@ func (ec *executionContext) unmarshalInputCreateUserInput(ctx context.Context, o
 				return it, err
 			}
 			it.Username = data
+		case "profileImage":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("profileImage"))
+			data, err := ec.unmarshalOUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ProfileImage = data
 		}
 	}
 
@@ -3165,6 +3227,8 @@ func (ec *executionContext) _CreateUserPayload(ctx context.Context, sel ast.Sele
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "profileImageURL":
+			out.Values[i] = ec._CreateUserPayload_profileImageURL(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4074,6 +4138,22 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	res := graphql.MarshalString(*v)
+	return res
+}
+
+func (ec *executionContext) unmarshalOUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, v interface{}) (*graphql.Upload, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalUpload(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, sel ast.SelectionSet, v *graphql.Upload) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalUpload(*v)
 	return res
 }
 

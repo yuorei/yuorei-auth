@@ -8,6 +8,7 @@ import (
 	"context"
 	"os"
 
+	"github.com/99designs/gqlgen/graphql"
 	gocloak "github.com/Nerzal/gocloak/v13"
 	model "github.com/yuorei/yuorei-auth/app/domain/models"
 	"github.com/yuorei/yuorei-auth/graph/generated"
@@ -22,12 +23,23 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUse
 		return nil, err
 	}
 
+	imageURL := ""
+	if input.ProfileImage == nil {
+		profileImage := graphql.Upload{}
+		input.ProfileImage = &profileImage
+		// TODO 画像を保存
+		imageURL = ""
+	}
+
 	user := gocloak.User{
 		FirstName: input.FirstName,
 		LastName:  input.LastName,
 		Email:     input.Email,
 		Enabled:   gocloak.BoolP(true),
 		Username:  &input.Username,
+		Attributes: &map[string][]string{
+			"profileImage": {imageURL},
+		},
 	}
 
 	_, err = client.CreateUser(ctx, token.AccessToken, os.Getenv("KEYCLOAK_REALM"), user)

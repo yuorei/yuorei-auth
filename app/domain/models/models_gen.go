@@ -2,18 +2,24 @@
 
 package model
 
+import (
+	"github.com/99designs/gqlgen/graphql"
+)
+
 type CreateUserInput struct {
-	FirstName *string `json:"firstName,omitempty"`
-	LastName  *string `json:"lastName,omitempty"`
-	Email     *string `json:"email,omitempty"`
-	Username  string  `json:"username"`
+	FirstName    *string         `json:"firstName,omitempty"`
+	LastName     *string         `json:"lastName,omitempty"`
+	Email        *string         `json:"email,omitempty"`
+	Username     string          `json:"username"`
+	ProfileImage *graphql.Upload `json:"profileImage,omitempty"`
 }
 
 type CreateUserPayload struct {
-	FirstName *string `json:"firstName,omitempty"`
-	LastName  *string `json:"lastName,omitempty"`
-	Email     *string `json:"email,omitempty"`
-	Username  string  `json:"username"`
+	FirstName       *string `json:"firstName,omitempty"`
+	LastName        *string `json:"lastName,omitempty"`
+	Email           *string `json:"email,omitempty"`
+	Username        string  `json:"username"`
+	ProfileImageURL *string `json:"profileImageURL,omitempty"`
 }
 
 type LoginInput struct {
