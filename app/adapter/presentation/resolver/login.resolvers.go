@@ -6,7 +6,6 @@ package resolver
 
 import (
 	"context"
-	"fmt"
 	"os"
 
 	gocloak "github.com/Nerzal/gocloak/v13"
@@ -16,10 +15,8 @@ import (
 // Login is the resolver for the Login field.
 func (r *mutationResolver) Login(ctx context.Context, input model.LoginInput) (*model.LoginPayload, error) {
 	client := gocloak.NewClient(os.Getenv("KEYCLOAK_URL"))
-	fmt.Println(os.Getenv("KEYCLOAK_CLIENTID"), os.Getenv("KEYCLOAK_CLIENT_SECRET"))
 	token, err := client.Login(ctx, os.Getenv("KEYCLOAK_CLIENTID"), os.Getenv("KEYCLOAK_CLIENT_SECRET"), os.Getenv("KEYCLOAK_REALM"), input.Username, input.Password)
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 
