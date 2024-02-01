@@ -12,10 +12,11 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 	"github.com/yuorei/yuorei-auth/app/adapter/presentation/resolver"
+	"github.com/yuorei/yuorei-auth/app/adapter/presentation/rest"
 	"github.com/yuorei/yuorei-auth/graph/generated"
 )
 
-const defaultPort = "8080"
+const defaultPort = "8083"
 
 func main() {
 	err := godotenv.Load(".env")
@@ -42,6 +43,9 @@ func main() {
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &resolver.Resolver{}}))
 	r.Handle("/", playground.Handler("GraphQL playground", "/graphql"))
 	r.Handle("/graphql", srv)
+
+	r.Post("/user", rest.CreateUser)
+	r.Post("/login", rest.Login)
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, r))
