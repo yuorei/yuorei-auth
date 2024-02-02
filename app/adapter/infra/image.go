@@ -24,15 +24,15 @@ func ConvertToWebp(imageFile multipart.File, id string) (*os.File, error) {
 		return nil, nil
 	}
 
+	// コンテンツタイプを検出する
 	buf := make([]byte, 512)
 	_, err := imageFile.Read(buf)
 	if err != nil {
 		return nil, err
 	}
-
-	// コンテンツタイプを検出する
 	contentType := http.DetectContentType(buf)
-	fmt.Println("Content Type:", contentType)
+	// ポインタをもとに戻す
+	imageFile.Seek(0, 0)
 
 	var image image.Image
 	switch contentType {
@@ -68,9 +68,9 @@ func ConvertToWebp(imageFile multipart.File, id string) (*os.File, error) {
 	defer imageTmp.Close()
 	err = webp.Encode(imageTmp, image, nil)
 	if err != nil {
-
 		return nil, fmt.Errorf("Failed to encode to WEBP image")
 	}
+	fmt.Println("success to convert to webp")
 
 	return imageTmp, nil
 }
@@ -107,7 +107,7 @@ func UploadImageForStorage(imageBuffer *os.File, id string) (string, error) {
 	}
 
 	// create 'video-service' bucket if not exist
-	bucketName := "keycloal-user"
+	bucketName := os.Getenv("AWS_S3_BUCKET_NAME")
 	if _, ok := buckets[bucketName]; !ok {
 		_, err = client.CreateBucket(ctx, &s3.CreateBucketInput{
 			Bucket: &bucketName,
@@ -117,7 +117,6 @@ func UploadImageForStorage(imageBuffer *os.File, id string) (string, error) {
 			return "", err
 		}
 	}
-	fmt.Println("bucketName: ", bucketName, imagePath)
 
 	image, err := os.Open(imagePath)
 	if err != nil {
@@ -135,8 +134,8 @@ func UploadImageForStorage(imageBuffer *os.File, id string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to upload file: %w", err)
 	}
-	log.Println("Successful upload: ", id)
+	log.Println("Successful upload: ", imagePath)
 
-	url := fmt.Sprintf("%s/video-service/%s.webp", os.Getenv("AWS_S3_ENDPOINT"), id)
+	url := fmt.Sprintf("%s/%s/%s", os.Getenv("AWS_S3_URL"), bucketName, imagePath)
 	return url, nil
 }
