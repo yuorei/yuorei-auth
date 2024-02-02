@@ -44,6 +44,7 @@ func main() {
 	r.Handle("/", playground.Handler("GraphQL playground", "/graphql"))
 	r.Handle("/graphql", srv)
 
+	r.Get("/profile-image/{user-id}", rest.GetProfileImage)
 	r.Post("/user", rest.CreateUser)
 	r.Post("/login", rest.Login)
 

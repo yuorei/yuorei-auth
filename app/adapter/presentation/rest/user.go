@@ -2,12 +2,12 @@ package rest
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"net/http"
 	"os"
 
 	"github.com/Nerzal/gocloak/v13"
+	"github.com/go-chi/chi"
 	"github.com/yuorei/yuorei-auth/app/adapter/infra"
 )
 
@@ -36,12 +36,12 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	input.Password = r.FormValue("password")
 
 	// ファイルを取得
-	file, fileHeade, err := r.FormFile("profileImage")
+	file, _, err := r.FormFile("profileImage")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	fmt.Println(fileHeade.Filename)
+
 	defer file.Close()
 
 	client := gocloak.NewClient(os.Getenv("KEYCLOAK_URL"))
@@ -112,6 +112,39 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(token)
+}
+
+type ProfileImageURL struct {
+	URL string `json:"url"`
+}
+
+func GetProfileImage(w http.ResponseWriter, r *http.Request) {
+	client := gocloak.NewClient(os.Getenv("KEYCLOAK_URL"))
+	ctx := r.Context()
+	masterToken, err := client.LoginAdmin(ctx, os.Getenv("KEYCLOAK_ADMIN_USERNAME"), os.Getenv("KEYCLOAK_ADMIN_PASSWORD"), "master")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	userID := chi.URLParam(r, "user-id")
+	user, err := client.GetUserByID(ctx, masterToken.AccessToken, os.Getenv("KEYCLOAK_REALM"), userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	var imageUrl string
+	if user.Attributes != nil {
+		images, ok := (*user.Attributes)["profileImage"]
+		if ok && len(images) > 0 {
+			imageUrl = images[0]
+		}
+	}
+	profileImageURL := ProfileImageURL{
+		URL: imageUrl,
+	}
+	json.NewEncoder(w).Encode(profileImageURL)
 }
 
 func getStringPointer(s string) *string {
