@@ -88,7 +88,6 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	return
 }
 
 type LoginRequest struct {
@@ -106,7 +105,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	client := gocloak.NewClient(os.Getenv("KEYCLOAK_URL"))
 	token, err := client.Login(r.Context(), os.Getenv("KEYCLOAK_CLIENTID"), os.Getenv("KEYCLOAK_CLIENT_SECRET"), os.Getenv("KEYCLOAK_REALM"), req.Username, req.Password)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
